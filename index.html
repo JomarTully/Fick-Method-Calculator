@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b5cab">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Fick Calculator">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Fick Calculator</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#15202b;background:#f2f6fa}
+*{box-sizing:border-box} body{margin:0;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);background:#f2f6fa}
+main{max-width:560px;margin:auto;padding:22px 0 36px}
+h1{font-size:28px;margin:0}.sub{color:#64748b;margin:5px 0 20px}
+.card{background:white;border:1px solid #dbe4ee;border-radius:18px;padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{font-size:13px;font-weight:600} input{width:100%;font-size:18px;padding:12px;margin-top:5px;border:1px solid #cbd5e1;border-radius:12px;background:#fff}
+button{width:100%;min-height:50px;border:0;border-radius:13px;font-size:17px;font-weight:700}
+.primary{background:#0b5cab;color:white}.secondary{margin-top:9px;background:#e8eef5;color:#15202b}
+.error{display:none;color:#9f1239;background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:12px;margin-top:12px}
+.results{display:none}.hero{font-size:36px;font-weight:800;margin-top:3px}.unit{font-size:15px;color:#64748b;font-weight:500}
+.metric{padding:10px 0;border-bottom:1px solid #edf2f7}.metric:last-child{border-bottom:0}.value{float:right;font-weight:700}
+.note{font-size:12px;line-height:1.45;color:#64748b;margin-top:16px}
+@media(max-width:380px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>Fick Calculator</h1>
+<p class="sub">Cardiac Output · Cardiac Index · BSA</p>
+
+<form id="form">
+<div class="card">
+<div class="grid">
+<label>VO₂ (mL/min)<input id="vo2" type="number" inputmode="decimal" step="any" placeholder="250"></label>
+<label>Hemoglobin (g/dL)<input id="hb" type="number" inputmode="decimal" step="any" placeholder="12"></label>
+<label>SaO₂ (%)<input id="sao2" type="number" inputmode="decimal" step="any" placeholder="98"></label>
+<label>SvO₂ (%)<input id="svo2" type="number" inputmode="decimal" step="any" placeholder="70"></label>
+<label>Height (cm)<input id="height" type="number" inputmode="decimal" step="any" placeholder="175"></label>
+<label>Weight (kg)<input id="weight" type="number" inputmode="decimal" step="any" placeholder="80"></label>
+</div>
+<div id="error" class="error"></div>
+</div>
+<button class="primary" type="submit">Calculate</button>
+<button class="secondary" id="clear" type="button">Clear</button>
+</form>
+
+<section id="results" class="results">
+<div class="card">
+<div>Fick Cardiac Output</div>
+<div class="hero"><span id="co"></span> <span class="unit">L/min</span></div>
+</div>
+<div class="card">
+<div class="metric">Cardiac Index <span class="value"><span id="ci"></span> L/min/m²</span></div>
+<div class="metric">BSA <span class="value"><span id="bsa"></span> m²</span></div>
+<div class="metric">CaO₂ <span class="value"><span id="cao2"></span> mL O₂/dL</span></div>
+<div class="metric">CvO₂ <span class="value"><span id="cvo2"></span> mL O₂/dL</span></div>
+<div class="metric">A–V O₂ difference <span class="value"><span id="av"></span> mL O₂/dL</span></div>
+</div>
+</section>
+
+<p class="note">Uses the simplified Fick oxygen-content calculation: CaO₂ = 1.34 × Hb × SaO₂ and CvO₂ = 1.34 × Hb × SvO₂; dissolved oxygen is omitted. For clinical decisions, use your institution's validated hemodynamic method and independently verify inputs.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+$("form").addEventListener("submit",e=>{
+ e.preventDefault(); $("error").style.display="none";
+ const n=id=>Number($(id).value);
+ const vo2=n("vo2"),hb=n("hb"),sa=n("sao2"),sv=n("svo2"),h=n("height"),w=n("weight");
+ let msg="";
+ if([vo2,hb,sa,sv,h,w].some(x=>!Number.isFinite(x)||x<=0)) msg="Enter a positive number in every field.";
+ else if(sa>100||sv>100) msg="SaO₂ and SvO₂ cannot exceed 100%.";
+ else if(sv>=sa) msg="SaO₂ must be greater than SvO₂.";
+ if(msg){$("error").textContent=msg;$("error").style.display="block";$("results").style.display="none";return;}
+ const cao2=1.34*hb*(sa/100), cvo2=1.34*hb*(sv/100), av=cao2-cvo2;
+ const co=vo2/(av*10), bsa=Math.sqrt((h*w)/3600), ci=co/bsa;
+ [["co",co],["ci",ci],["bsa",bsa],["cao2",cao2],["cvo2",cvo2],["av",av]].forEach(([id,x])=>$(id).textContent=x.toFixed(2));
+ $("results").style.display="block";
+});
+$("clear").addEventListener("click",()=>{
+ document.querySelectorAll("input").forEach(x=>x.value="");
+ $("results").style.display="none"; $("error").style.display="none";
+});
+</script>
+</body>
+</html>
