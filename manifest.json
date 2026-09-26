@@ -1,10 +1,10 @@
 {
-  "name": "Fick Cardiac Output Calculator",
+  "name": "Fick Calculator",
   "short_name": "Fick Calculator",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f2f6fa",
   "theme_color": "#0b5cab",
+  "background_color": "#f2f6fa",
   "icons": [
     {
       "src": "icon-180.png",
